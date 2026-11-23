@@ -1,0 +1,151 @@
+{
+ "name": "sketch_15",
+ "image": "sketch_15.png",
+ "cell_mm": 8.0,
+ "grid": [
+  23,
+  20
+ ],
+ "conditions": {
+  "pen_px": 3,
+  "wobble_px": 1.0,
+  "light_gradient": 70.0,
+  "tilt_deg": 0.0
+ },
+ "elements": [
+  {
+   "type": "boundary",
+   "points": [
+    [
+     0,
+     0
+    ],
+    [
+     22,
+     0
+    ]
+   ]
+  },
+  {
+   "type": "boundary",
+   "points": [
+    [
+     22,
+     0
+    ],
+    [
+     22,
+     19
+    ]
+   ]
+  },
+  {
+   "type": "boundary",
+   "points": [
+    [
+     22,
+     19
+    ],
+    [
+     0,
+     19
+    ]
+   ]
+  },
+  {
+   "type": "boundary",
+   "points": [
+    [
+     0,
+     19
+    ],
+    [
+     0,
+     0
+    ]
+   ]
+  },
+  {
+   "type": "wall",
+   "points": [
+    [
+     0,
+     12
+    ],
+    [
+     16,
+     12
+    ]
+   ]
+  },
+  {
+   "type": "wall",
+   "points": [
+    [
+     19,
+     12
+    ],
+    [
+     22,
+     12
+    ]
+   ]
+  },
+  {
+   "type": "wall",
+   "points": [
+    [
+     8,
+     0
+    ],
+    [
+     8,
+     3
+    ]
+   ]
+  },
+  {
+   "type": "wall",
+   "points": [
+    [
+     8,
+     6
+    ],
+    [
+     8,
+     19
+    ]
+   ]
+  },
+  {
+   "type": "symbol",
+   "subtype": "arrow_start",
+   "points": [
+    [
+     13,
+     9
+    ]
+   ]
+  },
+  {
+   "type": "interactable",
+   "subtype": "door",
+   "points": [
+    [
+     20,
+     8
+    ]
+   ]
+  },
+  {
+   "type": "interactable",
+   "subtype": "door",
+   "points": [
+    [
+     15,
+     4
+    ]
+   ]
+  }
+ ]
+}

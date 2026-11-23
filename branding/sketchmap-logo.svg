@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-labelledby="t d">
+  <title id="t">SketchMap logo</title>
+  <desc id="d">The letter S drawn as a single right-angled path snapped to a grid, starting at a node and ending in an arrow: a hand-drawn sketch turned into a grid-based game map.</desc>
+  <defs>
+    <clipPath id="c"><rect width="512" height="512" rx="108"/></clipPath>
+  </defs>
+  <g clip-path="url(#c)">
+    <rect width="512" height="512" fill="#F5C84B"/>
+    <g stroke="#1A1403" stroke-opacity="0.12" stroke-width="5" fill="none"><path d="M16 0V512M0 16H512"/><path d="M136 0V512M0 136H512"/><path d="M256 0V512M0 256H512"/><path d="M376 0V512M0 376H512"/><path d="M496 0V512M0 496H512"/></g>
+  </g>
+  <g transform="translate(-17 -3)">
+    <path d="M376 136H166Q136 136 136 166V226Q136 256 166 256H346Q376 256 376 286V346Q376 376 346 376H216" fill="none" stroke="#1A1403" stroke-width="60"/>
+    <polygon points="216,326 216,426 124,376" fill="#1A1403"/>
+    <circle cx="376" cy="136" r="46" fill="#1A1403"/>
+    <circle cx="376" cy="136" r="16" fill="#F5C84B"/>
+  </g>
+</svg>

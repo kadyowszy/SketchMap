@@ -1,0 +1,115 @@
+{
+ "name": "sketch_20",
+ "image": "sketch_20.png",
+ "cell_mm": 8.0,
+ "grid": [
+  29,
+  19
+ ],
+ "conditions": {
+  "pen_px": 6,
+  "wobble_px": 2.2,
+  "light_gradient": 25.0,
+  "tilt_deg": 0.8
+ },
+ "elements": [
+  {
+   "type": "boundary",
+   "points": [
+    [
+     0,
+     0
+    ],
+    [
+     28,
+     0
+    ]
+   ]
+  },
+  {
+   "type": "boundary",
+   "points": [
+    [
+     28,
+     0
+    ],
+    [
+     28,
+     18
+    ]
+   ]
+  },
+  {
+   "type": "boundary",
+   "points": [
+    [
+     28,
+     18
+    ],
+    [
+     0,
+     18
+    ]
+   ]
+  },
+  {
+   "type": "boundary",
+   "points": [
+    [
+     0,
+     18
+    ],
+    [
+     0,
+     0
+    ]
+   ]
+  },
+  {
+   "type": "wall",
+   "points": [
+    [
+     20,
+     0
+    ],
+    [
+     20,
+     3
+    ]
+   ]
+  },
+  {
+   "type": "wall",
+   "points": [
+    [
+     20,
+     6
+    ],
+    [
+     20,
+     18
+    ]
+   ]
+  },
+  {
+   "type": "symbol",
+   "subtype": "arrow_start",
+   "points": [
+    [
+     12,
+     7
+    ]
+   ]
+  },
+  {
+   "type": "interactable",
+   "subtype": "door",
+   "points": [
+    [
+     2,
+     4
+    ]
+   ]
+  }
+ ]
+}

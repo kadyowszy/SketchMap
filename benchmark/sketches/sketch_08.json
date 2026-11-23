@@ -1,0 +1,145 @@
+{
+ "name": "sketch_08",
+ "image": "sketch_08.png",
+ "cell_mm": 8.0,
+ "grid": [
+  24,
+  14
+ ],
+ "conditions": {
+  "pen_px": 6,
+  "wobble_px": 1.5,
+  "light_gradient": 0.0,
+  "tilt_deg": 0.8
+ },
+ "elements": [
+  {
+   "type": "boundary",
+   "points": [
+    [
+     0,
+     0
+    ],
+    [
+     23,
+     0
+    ]
+   ]
+  },
+  {
+   "type": "boundary",
+   "points": [
+    [
+     23,
+     0
+    ],
+    [
+     23,
+     13
+    ]
+   ]
+  },
+  {
+   "type": "boundary",
+   "points": [
+    [
+     23,
+     13
+    ],
+    [
+     0,
+     13
+    ]
+   ]
+  },
+  {
+   "type": "boundary",
+   "points": [
+    [
+     0,
+     13
+    ],
+    [
+     0,
+     0
+    ]
+   ]
+  },
+  {
+   "type": "wall",
+   "points": [
+    [
+     18,
+     0
+    ],
+    [
+     18,
+     2
+    ]
+   ]
+  },
+  {
+   "type": "wall",
+   "points": [
+    [
+     18,
+     5
+    ],
+    [
+     18,
+     13
+    ]
+   ]
+  },
+  {
+   "type": "symbol",
+   "subtype": "arrow_start",
+   "points": [
+    [
+     2,
+     2
+    ]
+   ]
+  },
+  {
+   "type": "interactable",
+   "subtype": "door",
+   "points": [
+    [
+     14,
+     6
+    ]
+   ]
+  },
+  {
+   "type": "interactable",
+   "subtype": "door",
+   "points": [
+    [
+     5,
+     10
+    ]
+   ]
+  },
+  {
+   "type": "interactable",
+   "subtype": "door",
+   "points": [
+    [
+     5,
+     3
+    ]
+   ]
+  },
+  {
+   "type": "symbol",
+   "subtype": "enemy_spawn",
+   "points": [
+    [
+     9,
+     8
+    ]
+   ]
+  }
+ ]
+}

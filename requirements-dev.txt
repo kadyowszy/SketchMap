@@ -1,0 +1,5 @@
+-r requirements.txt
+pytest>=8.0
+markdown>=3.5          # only to rebuild the PDF manual
+playwright>=1.40       # only to rebuild the PDF manual (python -m playwright install chromium)
+pyinstaller>=6.0       # only to build the standalone app
