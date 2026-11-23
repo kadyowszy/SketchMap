@@ -1,4 +1,4 @@
-# SketchMap 1.0.0 Beta - User Manual
+# SketchMap 0.1.0 Beta - User Manual
 
 SketchMap turns a photo or scan of a hand-drawn level into an editable 2D grid map, and exports it as a **JSON** file (any engine)
 or a **Godot scene (.tscn)** with a tile map and physics colliders. It runs completely **offline**: there are no accounts, no logins

@@ -195,12 +195,11 @@ class MainWindow(QMainWindow):
         box = QMessageBox(self)
         box.setWindowTitle("About SketchMap")
         box.setIconPixmap(icons.logo_pixmap(84))
-        box.setText(f"<b>SketchMap {VERSION_LABEL}</b><br>{APP_TAGLINE}<br><br>"
-                    f"{beta.about_html()}<br><br>"
-                    "Turn a photographed paper sketch into an editable, perpendicular grid level "
-                    "and export it as JSON or a Godot .tscn scene.<br><br>"
-                    "Runs entirely offline. No accounts, no network access.<br>"
-                    "Built with Python, OpenCV, NumPy and PyQt6.")
+        box.setText(f"<b>SketchMap {VERSION_LABEL}</b><br>"
+                    "Beta: only Boundary, Wall, Player start, Enemy spawn and Door are recognized from photos.<br><br>"
+                    "Kurt Yhuri P. Edañol (Documentation)<br>"
+                    "Jankaizen I. Dezosa (Designer)<br>"
+                    "Samuel Lance M. Panganiban (Developer)")
         box.exec()
 
     def _shortcuts(self):
