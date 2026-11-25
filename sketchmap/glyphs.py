@@ -162,8 +162,9 @@ def outline(M):
         (_cc, (rw_, rh_), _aa) = cv2.minAreaRect(cnts[i])
         bx, by, bw, bh = cv2.boundingRect(cnts[i])
         pp = cv2.arcLength(cnts[i], True)
+        hnv = len(cv2.approxPolyDP(cnts[i], 0.09 * pp, True))
         cells.append(dict(area=a, rect=a / max(rw_ * rh_, 1.0), asp=bw / max(bh, 1), circ=4 * math.pi * a / max(pp * pp, 1.0),
-                          cx=bx + bw / 2.0, cy=by + bh / 2.0))
+                          cx=bx + bw / 2.0, cy=by + bh / 2.0, nv=hnv, bw=bw, bh=bh))
     holes = [c["area"] for c in cells]
     filled = np.zeros_like(M)
     cv2.drawContours(filled, [c], -1, 1, -1)
@@ -375,6 +376,13 @@ def classify(parts):
             return done(None, why="circle with something else inside")
         return _box(O, cells, pieces, holes, done, note)
 
+    if holes == 1 and shape is None and not bridged:
+        hc = cells[0]
+        ext = max(O["w"], O["h"]) / max(hc["bw"], hc["bh"], 1)
+        if hc["nv"] == 3 and hc["rect"] < 0.66 and ext <= 1.75 and O["rasp"] < 1.9 and len(ends) <= 4:
+            note(f"outline not convex (pen overshoot) but the enclosed cell is a triangle (outline/cell extent {ext:.2f})")
+            return done("enemy_spawn", why="empty triangle (cell shape)")
+
     if holes == 1 and O["rasp"] >= 1.7 and O["rect"] >= 0.28 and cells[0]["circ"] >= 0.5:
         off = math.hypot(cells[0]["cx"] - O["ctr"][0], cells[0]["cy"] - O["ctr"][1]) / max(O["w"], O["h"], 1)
         if off >= 0.2:
@@ -509,4 +517,66 @@ def _stroke_set(norm, t, rules, feats, done):
         if abs((a0 - a1 + 180) % 360 - 180) <= 35:
             face = _facing_from(v[0], v[1])
             return done("conveyor", face, "double chevron pointing " + ("right", "down", "left", "up")[face])
+    arrow = _arrow_from_strokes(info, kinds, n)
+    if arrow is not None:
+        face, why = arrow
+        return done("arrow_start", face, why)
     return done(None, why="strokes do not form a legend entry")
+
+
+def _vec_angle(u, v):
+    nu, nv = math.hypot(*u), math.hypot(*v)
+    if nu < 1e-6 or nv < 1e-6:
+        return 180.0
+    return math.degrees(math.acos(float(np.clip((u[0] * v[0] + u[1] * v[1]) / (nu * nv), -1, 1))))
+
+
+def _arrow_from_strokes(info, kinds, n):
+    """An arrow drawn as SEPARATE strokes (the pen lifts between shaft and head, which is very common):
+         2 strokes: a straight shaft + a '>' chevron head whose tip points away from the shaft's far end
+         3 strokes: a straight shaft + two short barbs that meet near one end of the shaft
+       Returns (facing, why) or None."""
+    if n == 2:
+        ch = [k for k, kd in enumerate(kinds) if kd == "chevron"]
+        sh = [k for k, kd in enumerate(kinds) if kd == "straight"]
+        if len(ch) != 1 or len(sh) != 1:
+            return None
+        head, shaft = info[ch[0]], info[sh[0]]
+        tip, base = head["apex"]["tip"], head["apex"]["base"]
+        pa = shaft["path"]
+        d0, d1 = math.dist(pa[0], tip), math.dist(pa[-1], tip)
+        near, far = (pa[0], pa[-1]) if d0 <= d1 else (pa[-1], pa[0])
+        gap = min(d0, d1)
+        span = math.dist(base, tip)
+        if shaft["len"] < 0.9 * span or gap > 1.1 * shaft["len"]:
+            return None
+        v = np.asarray(tip) - np.asarray(far)
+        if _vec_angle(v, np.asarray(tip) - np.asarray(base)) > 55:
+            return None
+        face = _facing_from(v[0], v[1])
+        return face, f"shaft + separate chevron head; faces {FACES[face]}"
+    if n == 3:
+        order = sorted(range(3), key=lambda k: -info[k]["len"])
+        shaft, b1, b2 = info[order[0]], info[order[1]], info[order[2]]
+        if shaft["tort"] >= 1.3 or shaft["len"] < 1.3 * max(b1["len"], b2["len"]):
+            return None
+        pa = shaft["path"]
+        ends = (np.asarray(pa[0]), np.asarray(pa[-1]))
+        bar = [np.asarray(b["path"][0]) for b in (b1, b2)] + [np.asarray(b["path"][-1]) for b in (b1, b2)]
+        for tip_i in (0, 1):
+            tip, far = ends[tip_i], ends[1 - tip_i]
+            # each barb must start near the shaft tip and lie on the tail side of it
+            near_pts, outer_pts = [], []
+            for b in (b1, b2):
+                p0, p1 = np.asarray(b["path"][0]), np.asarray(b["path"][-1])
+                a, c = (p0, p1) if np.linalg.norm(p0 - tip) <= np.linalg.norm(p1 - tip) else (p1, p0)
+                near_pts.append(np.linalg.norm(a - tip))
+                outer_pts.append(c)
+            if max(near_pts) > 0.55 * shaft["len"]:
+                continue
+            back = far - tip
+            if all(_vec_angle(c - tip, back) < 80 for c in outer_pts):
+                v = tip - far
+                face = _facing_from(v[0], v[1])
+                return face, f"shaft + two separate barbs; faces {FACES[face]}"
+    return None

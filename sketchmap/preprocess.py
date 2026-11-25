@@ -96,6 +96,59 @@ def find_paper_corners(image):
     return None
 
 
+def _quad_from_hull(hull):
+    """4 corners for a convex hull: tighten approxPolyDP until it has 4 vertices, else the min-area rectangle."""
+    per = cv2.arcLength(hull, True)
+    for eps in (0.01, 0.015, 0.02, 0.03, 0.04, 0.05, 0.07):
+        ap = cv2.approxPolyDP(hull, eps * per, True)
+        if len(ap) == 4:
+            return ap.reshape(4, 2).astype("float32")
+        if len(ap) < 4:
+            break
+    return cv2.boxPoints(cv2.minAreaRect(hull)).astype("float32")
+
+
+def find_paper_by_brightness(image):
+    """Fallback paper finder for soft edges / curled corners / textured tables where Canny gives no clean 4-gon.
+
+    The paper is the biggest bright blob. Threshold a blurred, down-scaled copy (Otsu), keep the largest component,
+    fill the pen strokes inside it, fit a quadrilateral to its convex hull and check it looks like a sheet of paper.
+    """
+    H, W = image.shape[:2]
+    f = 800.0 / max(H, W)
+    small = cv2.resize(image, None, fx=f, fy=f, interpolation=cv2.INTER_AREA) if f < 1 else image.copy()
+    g = cv2.cvtColor(small, cv2.COLOR_BGR2GRAY)
+    g = cv2.GaussianBlur(g, (0, 0), max(2.0, 0.006 * max(g.shape)))
+    # flatten slow lighting gradients so one threshold separates paper from table
+    bgl = cv2.GaussianBlur(g, (0, 0), 0.25 * max(g.shape))
+    flat = cv2.normalize(g.astype(np.float32) - 0.5 * bgl.astype(np.float32), None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
+    T, mask = cv2.threshold(flat, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    k = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9))
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, k)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (21, 21)))
+    n, lab, stt, _c = cv2.connectedComponentsWithStats(mask, connectivity=8)
+    if n < 2:
+        return None
+    big = 1 + int(np.argmax(stt[1:, cv2.CC_STAT_AREA]))
+    blob = (lab == big).astype(np.uint8) * 255
+    cnts, _ = cv2.findContours(blob, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    if not cnts:
+        return None
+    hull = cv2.convexHull(max(cnts, key=cv2.contourArea))
+    quad = _quad_from_hull(hull)
+    qa, ha = cv2.contourArea(order_corners(quad)), cv2.contourArea(hull)
+    if qa < 0.25 * g.shape[0] * g.shape[1] or ha < 0.85 * qa:
+        return None
+    # a sheet of paper has ~4 right-ish angles and an A-series aspect (1.0 .. 2.0 allowed for perspective)
+    q = order_corners(quad)
+    w1, w2 = np.hypot(*(q[1] - q[0])), np.hypot(*(q[2] - q[3]))
+    h1, h2 = np.hypot(*(q[3] - q[0])), np.hypot(*(q[2] - q[1]))
+    asp = max(w1 + w2, h1 + h2) / max(min(w1 + w2, h1 + h2), 1.0)
+    if not 1.1 <= asp <= 1.9:
+        return None
+    return order_corners(q / (f if f < 1 else 1.0))
+
+
 def warp_to_rect(image, corners):
     tl, tr, br, bl = rect = order_corners(corners)
     w = max(int(np.hypot(*(br - bl))), int(np.hypot(*(tr - tl))))
@@ -106,9 +159,19 @@ def warp_to_rect(image, corners):
     return cv2.warpPerspective(image, cv2.getPerspectiveTransform(rect, dst), (w, h))
 
 
+PAPER_INSET = 0.012   # trim the warped sheet by this fraction per side: its rim (curl, shadow, table sliver) is not drawing
+
+
 def straighten_paper(image):
     rect = find_paper_corners(image)
-    return image if rect is None else warp_to_rect(image, rect)
+    if rect is None:
+        rect = find_paper_by_brightness(image)
+    if rect is None:
+        return image
+    out = warp_to_rect(image, rect)
+    h, w = out.shape[:2]
+    dy, dx = int(round(PAPER_INSET * h)), int(round(PAPER_INSET * w))
+    return out[dy:h - dy, dx:w - dx] if h > 4 * dy + 50 and w > 4 * dx + 50 else out
 
 
 def get_initial_corners(image):

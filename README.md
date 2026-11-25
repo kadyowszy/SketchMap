@@ -29,10 +29,6 @@ python -m pip install -r requirements-dev.txt
 python -m sketchmap.schema level.json       # validate an export against the level format
 ```
 
-## Build the standalone app
-
-`packaging\build.bat` (Windows) or `bash packaging/build.sh` -> `dist/SketchMap/`. Zip that folder; users need no Python.
-
 ## Layout
 
 | Path | What |

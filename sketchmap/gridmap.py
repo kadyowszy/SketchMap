@@ -111,6 +111,21 @@ class MapModel:
         self.normalize()
         self.edits += 1
 
+    def carve_wall(self, x, y):
+        """Remove tile (x, y) from every wall/boundary segment (splitting them), keeping objects.
+        Used for doors, gates etc. drawn into a wall gap: the symbol takes the wall's place."""
+        new = []
+        for s in self.segments:
+            if not s.covers(x, y):
+                new.append(s)
+            elif s.y1 == s.y2:
+                if x > s.x1: new.append(Segment(s.kind, s.x1, s.y1, x - 1, s.y2))
+                if x < s.x2: new.append(Segment(s.kind, x + 1, s.y1, s.x2, s.y2))
+            else:
+                if y > s.y1: new.append(Segment(s.kind, s.x1, s.y1, s.x2, y - 1))
+                if y < s.y2: new.append(Segment(s.kind, s.x1, y + 1, s.x2, s.y2))
+        self.segments = new
+
     def erase_tile(self, x, y):
         new, hit = [], False
         for s in self.segments:

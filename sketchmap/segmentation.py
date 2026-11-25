@@ -3,6 +3,7 @@ import numpy as np
 
 from . import elements as el
 from .glyphs import classify
+from .attached import find_attached
 
 S2 = "2. Segmentation / symbol classification"
 MAX_DETAIL = 25
@@ -174,6 +175,11 @@ def segment(binary, cfg, st):
         m_, b_, r_ = out
         groups_log.append((m_, b_, r_, ""))
         _emit(m_, b_, r_, comps, symbols, unclassified, wall_mask, labels, wall_rows)
+
+    attached, wall_mask = find_attached(wall_mask, smin, smax, symbols)
+    for sy in attached:
+        symbols.append(sy)
+        groups_log.append(([], sy["bbox"], dict(key=sy["kind"], facing=0, rules=sy["rules"]), "box fused to a wall"))
 
     areas = sorted((int(a) for a in stt[1:, cv2.CC_STAT_AREA]), reverse=True)
     st.block(S2, "2.1 Connected-component labelling (8-connectivity)",

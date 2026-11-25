@@ -172,6 +172,8 @@ def build_model(A, cfg, cell_mm, st, progress=None):
                 model.segments.append(Segment(s["kind"], gx, min(ga, gb), gx, max(ga, gb)))
                 map_lines.append(f"B{s['id']} {s['kind']} V: x=({s['c']:.1f}-{x0})/{cell_px:.2f}={tc:.2f}->{gx} ; y=({s['a']:.1f}-{y0})/{cell_px:.2f}={ta:.2f}->{ga} .. ({s['b']:.1f}-{y0})/{cell_px:.2f}={tb:.2f}->{gb}")
         sym_lines = []
+        carve = []
+        placed = []
         for sy in A.symbols:
             tx, ty = (sy["cx"] - x0) / cell_px, (sy["cy"] - y0) / cell_px
             t = (clamp(tx, W - 1), clamp(ty, H - 1))
@@ -179,10 +181,17 @@ def build_model(A, cfg, cell_mm, st, progress=None):
             e = el.BY_KEY[sy["kind"]]
             face = sy.get("facing", 0) if e.directional else 0
             (model.terrain if e.category == "terrain" else model.objects)[t] = (sy["kind"], face)
+            if sy.get("attached"):
+                carve.append(t)
+            else:
+                placed.append((t, tx, ty, e, sy["kind"], face))
+        for t in carve:
+            model.carve_wall(*t)
         crates = [s for s in model.segments if s.kind == "breakable"]
         model.segments = [s for s in model.segments if s.kind != "breakable"]
         n_before = len(model.segments)
         model.normalize()
+        _relocate_pruned(model, placed)
         n_props = 0
         for s in crates:
             for xy in s.tiles():
@@ -253,6 +262,24 @@ def build_model(A, cfg, cell_mm, st, progress=None):
              visual=["Tab 5 draws gray tiles (walls), a bright frame (boundary) and a coloured badge for every symbol / interactable (every symbol of the Library legend; a jagged line = a row of breakable props).",
                      "Turn on 'Show sketch under grid' to compare every tile against your original drawing, and fix mistakes with the editor tools."])
     return model
+
+
+def _relocate_pruned(model, placed):
+    """A symbol drawn next to a wall can round onto the wall's own tile (cells are about the size of a symbol),
+    and normalize() then deletes it. It is clearly inside the room, so move it to the nearest free tile
+    (nearest to where it was actually drawn) instead of losing it."""
+    for (t, tx, ty, e, kind, face) in placed:
+        layer = model.terrain if e.category == "terrain" else model.objects
+        if layer.get(t, (None,))[0] == kind:
+            continue
+        cands = [(t[0] + dx, t[1] + dy) for dx in (-2, -1, 0, 1, 2) for dy in (-2, -1, 0, 1, 2) if (dx or dy)]
+        cands = [c for c in cands if model.inside(*c) and not model.wall_at(*c) and c not in layer and c not in model.objects]
+        if not cands:
+            continue
+        # prefer the tile closest to the true drawn position, and avoid ones squeezed between two walls
+        best = min(cands, key=lambda c: (c[0] - tx) ** 2 + (c[1] - ty) ** 2)
+        if (best[0] - tx) ** 2 + (best[1] - ty) ** 2 <= 2.25:
+            layer[best] = (kind, face)
 
 
 def make_previews(A):
